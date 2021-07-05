@@ -481,6 +481,9 @@ void exec_cmd(int argc, char**argv)
     USHORT vid, pid;
     ULONG ret;
 
+	unsigned int get_size = 0;
+	unsigned int cp_size;
+
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
@@ -495,7 +498,7 @@ void exec_cmd(int argc, char**argv)
 
 	int offset = 4;
 	int len = 0;
-    for(int i = 1; i < argc; i ++) {
+    for(int i = 0; i < argc; i ++) {
 		len = strlen(argv[i]);
 		memcpy(set_buf+offset, argv[i], len);
 		set_buf[offset+len+1] = ' ';
@@ -506,30 +509,77 @@ void exec_cmd(int argc, char**argv)
 	}
 
 	set_buf[3] = UDB_RUN_CMD;
-	dumphex(set_buf, EU_MAX_PKG_SIZE);
+
 	UvcXuCommand(vid, pid, set_buf, &ret, set);
 	UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+	dumphex(set_buf, EU_MAX_PKG_SIZE);
 	dumphex(get_buf, ret);
-	
-	loop = get_buf[0];
+#endif	
+	memcpy(&get_size, get_buf, sizeof(get_size));
 	//printf("\n");
 
-	for(unsigned char i=0;i<loop;i++)
+	for( ; ; )
 	{
+		if(get_size < EU_MAX_PKG_SIZE) {
+			cp_size = get_size;
+		} else {
+			cp_size = EU_MAX_PKG_SIZE;
+		}
+		memset(set_buf, 0, EU_MAX_PKG_SIZE);
+		set_buf[0] = 'u';
+		set_buf[1] = 'd';
+		set_buf[2] = 'b';	
 		set_buf[3] = UDB_RUN_CMD_PULLOUT;
-		set_buf[4] = i;
-		
-		dumphex(set_buf, EU_MAX_PKG_SIZE);
+		memcpy(set_buf + 4, &cp_size,sizeof(cp_size));
 		UvcXuCommand(vid, pid, set_buf, &ret, set);
 		UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+		dumphex(set_buf, EU_MAX_PKG_SIZE);
 		dumphex(get_buf, ret);
-		printf("%s", get_buf);
-	}
+#endif
+		int idx = strlen((const char *)get_buf) - 1;
+		
+		if(get_buf[idx] == '\n') {
+			get_buf[idx] = 0;
+		}
 
+		printf("%s", get_buf);
+		
+		get_size -= cp_size;
+		if(get_size == 0)
+			break;
+	}
 	//printf("ret %d\n", ret);
 	memset(set_buf, 0, EU_MAX_PKG_SIZE);
 	memset(get_buf, 0, EU_MAX_PKG_SIZE);    
 }
+
+void raw_set(int argc, char**argv)
+{
+    bool set = false;
+	bool get = true;
+
+    USHORT vid, pid;
+    ULONG ret;
+
+    memset(set_buf, 0, EU_MAX_PKG_SIZE);
+    memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
+
+    vid = UVCVID;
+    pid = UVCPID;
+
+    for(int i = 0; i < argc; i ++) {
+		//printf("argc:%d\t %s,%d\n", i,argv[i], strlen(argv[i]));
+		set_buf[i] = (unsigned char)strtoul(argv[i], NULL, 16);
+	}
+
+	UvcXuCommand(vid, pid, set_buf, &ret, set);
+	UvcXuCommand(vid, pid, get_buf, &ret, get);
+	dumphex(set_buf, EU_MAX_PKG_SIZE);
+	dumphex(get_buf, ret);
+}
+
 void print_usage(void)
 {
     printf("usage:\n");
@@ -556,13 +606,19 @@ int main(int argc, char**argv)
 		if(argc == 2) {
 			interactive_shell();
 		} else {
-			argc--;
-			argv++;
+			argc -= 2;
+			argv += 2;
 			exec_cmd(argc,argv);
 		}
 	} else if (!strcmp(argv[1],"push"))  {
 
 	} else if (!strcmp(argv[1],"pull"))  {
+
+	} else if (!strcmp(argv[1],"rawset"))  {
+		argc -= 2;
+		argv += 2;
+		raw_set(argc,argv);
+	} else if (!strcmp(argv[1],"rawget"))  {
 
 	} else {
 		print_usage();
