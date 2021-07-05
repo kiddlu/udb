@@ -28,23 +28,18 @@ enum udb_chan_id {
 
 	/* run cmd */
 	UDB_RUN_CMD        = 0x02,
-	UDB_GET_RUNCMD_OUT = 0x03,
-	
-	/* interactive shell */
-	UDB_INIT_SHELL     = 0x04,
-	UDB_EXEC_SHELL     = 0x05,
-	UDB_PULL_SHELL     = 0x06,
-	UDB_CLOSE_SHELL    = 0x07,
+	UDB_RUN_CMD_PULLOUT = 0x03,
+
 
 	/* get file */
 
 	/* put file */
 
 	/* property */
-	UDB_PROP_GET_CMD = 0xA0,
 
 	/*RAW*/
-	UDB_RAW        = 0xfe, //eu raw buffer 
+	UDB_RAWSET        = 0xfd, //eu raw buffer 
+	UDB_RAWGET        = 0xfe, //eu raw buffer 
 
 	NONE_CHAN      = 0xff
 };
@@ -275,7 +270,6 @@ void print_usage(const char *program)
 
 void dumphex(void *data, uint32_t size)
 {
-#ifdef DEBUG
 	char ascii[17];
 	unsigned int i, j;
 	ascii[16] = '\0';
@@ -302,12 +296,11 @@ void dumphex(void *data, uint32_t size)
 			}
 		}
 	}
-#endif
 }
 
 
-UCHAR set_buf[EU_MAX_PKG_SIZE];
-UCHAR get_buf[EU_MAX_PKG_SIZE + 1];
+unsigned char set_buf[EU_MAX_PKG_SIZE];
+unsigned char get_buf[EU_MAX_PKG_SIZE + 1];
 
 void interactive_shell(void)
 {
@@ -317,48 +310,112 @@ void interactive_shell(void)
     USHORT vid, pid;
     ULONG ret;
 
+	unsigned int get_size = 0;
+	unsigned int cp_size;	
+
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
     vid = UVCVID;
     pid = UVCPID;
 
-	while (printf("\n> ") && fgets((char *)set_buf + 4, EU_MAX_PKG_SIZE - 4, stdin)) 
+	set_buf[0] = 'u';
+	set_buf[1] = 'd';
+	set_buf[2] = 'b';
+	set_buf[3] = UDB_RUN_CMD;
+
+	memcpy(set_buf + 4, "pwd\n", 4);
+	UvcXuCommand(vid, pid, set_buf, &ret, set);
+	UvcXuCommand(vid, pid, get_buf, &ret, get);
+
+#ifdef DEBUG
+			dumphex(set_buf, EU_MAX_PKG_SIZE);
+			dumphex(get_buf, ret);
+#endif
+
+	memcpy(&get_size, get_buf, sizeof(get_size));
+
+	//printf("\n");
+
+	for( ; ; )
+	{
+		if(get_size < EU_MAX_PKG_SIZE) {
+			cp_size = get_size;
+		} else {
+			cp_size = EU_MAX_PKG_SIZE;
+		}
+		memset(set_buf, 0, EU_MAX_PKG_SIZE);
+		set_buf[0] = 'u';
+		set_buf[1] = 'd';
+		set_buf[2] = 'b';
+		set_buf[3] = UDB_RUN_CMD_PULLOUT;
+		memcpy(set_buf + 4, &cp_size,sizeof(cp_size));
+		UvcXuCommand(vid, pid, set_buf, &ret, set);
+		UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+			dumphex(set_buf, EU_MAX_PKG_SIZE);
+			dumphex(get_buf, ret);
+#endif
+		int idx = strlen((const char *)get_buf) - 1;
+		
+		if(get_buf[idx] == '\n') {
+			get_buf[idx] = 0;
+		}
+		printf("%s", get_buf);
+		
+		get_size -= cp_size;
+		if(get_size == 0)
+			break;
+	}
+	printf(">");
+	memset(set_buf, 0, EU_MAX_PKG_SIZE);
+	memset(get_buf, 0, EU_MAX_PKG_SIZE);
+
+	while (fgets((char *)set_buf + 4, EU_MAX_PKG_SIZE - 4, stdin)) 
 	{
 		if(strncmp((char *)set_buf + 4, "exit", 4) == 0){
 			printf("exit\n");
 			exit(0);
 		}
-
-		unsigned char loop = 0;
-
 		set_buf[0] = 'u';
 		set_buf[1] = 'd';
-		set_buf[2] = 'b';
-
-		set_buf[3] = UDB_INIT_SHELL;
-		UvcXuCommand(vid, pid, set_buf, &ret, set);			
-		
+		set_buf[2] = 'b';	
 		set_buf[3] = UDB_RUN_CMD;
-		dumphex(set_buf, EU_MAX_PKG_SIZE);
 		UvcXuCommand(vid, pid, set_buf, &ret, set);
 		UvcXuCommand(vid, pid, get_buf, &ret, get);
-		dumphex(get_buf, ret);
-		
-		loop = get_buf[0];
+#ifdef DEBUG
+			dumphex(set_buf, EU_MAX_PKG_SIZE);
+			dumphex(get_buf, ret);
+#endif
+		memcpy(&get_size, get_buf, sizeof(get_size));
 		//printf("\n");
 
-		for(unsigned char i=0;i<loop;i++)
+		for( ; ; )
 		{
-			set_buf[3] = UDB_GET_RUNCMD_OUT;
-			set_buf[4] = i;
-			
-			dumphex(set_buf, EU_MAX_PKG_SIZE);
+			if(get_size < EU_MAX_PKG_SIZE) {
+				cp_size = get_size;
+			} else {
+				cp_size = EU_MAX_PKG_SIZE;
+			}
+			memset(set_buf, 0, EU_MAX_PKG_SIZE);
+			set_buf[0] = 'u';
+			set_buf[1] = 'd';
+			set_buf[2] = 'b';
+			set_buf[3] = UDB_RUN_CMD_PULLOUT;
+			memcpy(set_buf + 4, &cp_size,sizeof(cp_size));
 			UvcXuCommand(vid, pid, set_buf, &ret, set);
 			UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+			dumphex(set_buf, EU_MAX_PKG_SIZE);
 			dumphex(get_buf, ret);
+#endif
 			printf("%s", get_buf);
+
+			get_size -= cp_size;
+			if(get_size == 0)
+				break;
 		}
+
 
 		//printf("ret %d\n", ret);
 		memset(set_buf, 0, EU_MAX_PKG_SIZE);
@@ -367,8 +424,53 @@ void interactive_shell(void)
 		set_buf[0] = 'u';
 		set_buf[1] = 'd';
 		set_buf[2] = 'b';
-		set_buf[3] = UDB_CLOSE_SHELL;
-		UvcXuCommand(vid, pid, set_buf, &ret, set);				
+		set_buf[3] = UDB_RUN_CMD;
+	
+		memcpy(set_buf + 4, "pwd\n", 4);
+		UvcXuCommand(vid, pid, set_buf, &ret, set);
+		UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+			dumphex(set_buf, EU_MAX_PKG_SIZE);
+			dumphex(get_buf, ret);
+#endif	
+		memcpy(&get_size, get_buf, sizeof(get_size));
+		//printf("\n");
+	
+		for( ; ; )
+		{
+			if(get_size < EU_MAX_PKG_SIZE) {
+				cp_size = get_size;
+			} else {
+				cp_size = EU_MAX_PKG_SIZE;
+			}
+			memset(set_buf, 0, EU_MAX_PKG_SIZE);
+			set_buf[0] = 'u';
+			set_buf[1] = 'd';
+			set_buf[2] = 'b';	
+			set_buf[3] = UDB_RUN_CMD_PULLOUT;
+			memcpy(set_buf + 4, &cp_size,sizeof(cp_size));
+			UvcXuCommand(vid, pid, set_buf, &ret, set);
+			UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+			dumphex(set_buf, EU_MAX_PKG_SIZE);
+			dumphex(get_buf, ret);
+#endif
+			int idx = strlen((const char *)get_buf) - 1;
+			
+			if(get_buf[idx] == '\n') {
+				get_buf[idx] = 0;
+			}
+
+			printf("%s", get_buf);
+			
+			get_size -= cp_size;
+			if(get_size == 0)
+				break;
+		}
+
+		printf(">");
+		memset(set_buf, 0, EU_MAX_PKG_SIZE);
+		memset(get_buf, 0, EU_MAX_PKG_SIZE);
 	}
 }
 void exec_cmd(int argc, char**argv)
@@ -414,7 +516,7 @@ void exec_cmd(int argc, char**argv)
 
 	for(unsigned char i=0;i<loop;i++)
 	{
-		set_buf[3] = UDB_GET_RUNCMD_OUT;
+		set_buf[3] = UDB_RUN_CMD_PULLOUT;
 		set_buf[4] = i;
 		
 		dumphex(set_buf, EU_MAX_PKG_SIZE);
@@ -434,8 +536,12 @@ void print_usage(void)
     printf("  command: \n");
     printf("    shell            : enter to interactive mode\n");
     printf("    shell [cmd]      : run shell cmd\n");
-    printf("    put [local] [dev]: put file to uvc device\n");
-    printf("    get [local] [dev]: get file from uvc device:\n");
+
+    printf("    push [local] [dev]: push file to uvc device\n");
+    printf("    pull [local] [dev]: pull file from uvc device\n");
+
+    printf("    rawset [0x11] [0x22] ...: set raw eu\n");
+    printf("    rawget                  : get raw eu\n");
 
 }
 
@@ -454,9 +560,9 @@ int main(int argc, char**argv)
 			argv++;
 			exec_cmd(argc,argv);
 		}
-	} else if (!strcmp(argv[1],"put"))  {
+	} else if (!strcmp(argv[1],"push"))  {
 
-	} else if (!strcmp(argv[1],"get"))  {
+	} else if (!strcmp(argv[1],"pull"))  {
 
 	} else {
 		print_usage();
