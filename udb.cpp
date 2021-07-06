@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <comsvcs.h>
 #include <atlstr.h>
 #include <vidcap.h>
@@ -30,10 +32,11 @@ enum udb_chan_id {
 	UDB_RUN_CMD        = 0x02,
 	UDB_RUN_CMD_PULLOUT = 0x03,
 
+	/* pull file */
+	UDB_PULL_FILE_INIT        = 0x11,
+	UDB_PULL_FILE_PULLOUT     = 0x12,
 
-	/* get file */
-
-	/* put file */
+	/* push file */
 
 	/* property */
 
@@ -595,13 +598,106 @@ void print_usage(void)
 
 }
 
+void pull_file(int argc, char**argv)
+{
+	char *local_path = argv[0];
+	char *dev_path = argv[1];
+	
+	printf("from dev: %s\nto local: %s\n", dev_path, local_path);
+
+
+	FILE *fp = fopen(local_path, "wb");
+	if(fp == NULL)
+	{
+		printf("open %s error\n", local_path);
+		return;
+	}
+
+    bool set = false;
+	bool get = true;
+	
+	unsigned int get_size = 0;
+	unsigned int cp_size;
+	unsigned int file_size = 0;
+	USHORT vid, pid;
+    ULONG ret;
+
+    memset(set_buf, 0, EU_MAX_PKG_SIZE);
+    memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
+
+    vid = UVCVID;
+    pid = UVCPID;
+
+	set_buf[0] = 'u';
+	set_buf[1] = 'd';
+	set_buf[2] = 'b';	
+	set_buf[3] = UDB_PULL_FILE_INIT;
+	memcpy(set_buf + 4, dev_path, strlen(dev_path));
+	UvcXuCommand(vid, pid, set_buf, &ret, set);
+	UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+	dumphex(set_buf, EU_MAX_PKG_SIZE);
+	dumphex(get_buf, ret);
+#endif
+	memcpy(&get_size, get_buf, sizeof(get_size));
+	file_size = get_size/1024;
+	printf("File Size: %dKiB\n", file_size);
+
+	int i = 0,j = 0;
+	SYSTEMTIME sys;
+	for( ; ; )
+	{
+		if(get_size < EU_MAX_PKG_SIZE) {
+			cp_size = get_size;
+		} else {
+			cp_size = EU_MAX_PKG_SIZE;
+		}
+		memset(set_buf, 0, EU_MAX_PKG_SIZE);
+		set_buf[0] = 'u';
+		set_buf[1] = 'd';
+		set_buf[2] = 'b';	
+		set_buf[3] = UDB_PULL_FILE_PULLOUT;
+		memcpy(set_buf + 4, &cp_size, sizeof(cp_size));
+		UvcXuCommand(vid, pid, set_buf, &ret, set);
+		UvcXuCommand(vid, pid, get_buf, &ret, get);
+#ifdef DEBUG
+		dumphex(set_buf, EU_MAX_PKG_SIZE);
+		dumphex(get_buf, ret);
+#endif
+
+		printf("#");
+		i++;
+		if(i == 64)
+		{
+			i = 0;
+			j++;
+			printf("\t(%d/%d)", 4*j, file_size);
+			GetLocalTime( &sys );   
+			printf( "\t%02d:%02d:%02d.%03d\n",sys.wHour,sys.wMinute, sys.wSecond,sys.wMilliseconds);  
+		}
+
+		fwrite(get_buf, 1, cp_size, fp);
+
+		get_size -= cp_size;
+
+		if(get_size == 0) {
+			printf("\t(%d/%d)", file_size, file_size);
+			GetLocalTime( &sys );   
+			printf( "\t%02d:%02d:%02d.%03d\n",sys.wHour,sys.wMinute, sys.wSecond,sys.wMilliseconds);  
+			break;
+		}
+	}
+
+	memset(set_buf, 0, EU_MAX_PKG_SIZE);
+	memset(get_buf, 0, EU_MAX_PKG_SIZE);    
+}
+
 int main(int argc, char**argv)
 {
 	if(argc<=1) {
 		print_usage();
 		return 0;
 	}
-
 	if(!strcmp(argv[1],"shell")) {
 		if(argc == 2) {
 			interactive_shell();
@@ -613,7 +709,9 @@ int main(int argc, char**argv)
 	} else if (!strcmp(argv[1],"push"))  {
 
 	} else if (!strcmp(argv[1],"pull"))  {
-
+		argc -= 2;
+		argv += 2;
+		pull_file(argc,argv);
 	} else if (!strcmp(argv[1],"rawset"))  {
 		argc -= 2;
 		argv += 2;
