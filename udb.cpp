@@ -644,7 +644,7 @@ void pull_file(int argc, char**argv)
 #endif
 	memcpy(&get_size, get_buf, sizeof(get_size));
 	file_size = get_size/1024;
-	printf("File Size: %dKiB\n", file_size);
+	printf("File Size: %dKiB, 0x%x\n", get_size, get_size);
 
 	int i = 0,j = 0;
 	SYSTEMTIME sys;
@@ -716,7 +716,7 @@ void push_file(int argc, char**argv)
     unsigned int file_size = ftell(fp);
     fseek(fp, 0L, SEEK_SET);
 
-	printf("File Size: %d, 0x%x\n", file_size, file_size);
+	printf("File Size: %dKiB, 0x%x\n", file_size/1024, file_size);
 
     bool set = false;
 	bool get = true;
@@ -776,7 +776,7 @@ void push_file(int argc, char**argv)
 		{
 			i = 0;
 			j++;
-			printf("\t(%d/%d)", PUSH_MAX_PKG_SIZE*64*j, file_size);
+			printf("\t(%d/%d)", PUSH_MAX_PKG_SIZE*64*j /1024, file_size/1024);
 			GetLocalTime( &sys );   
 			printf( "\t%02d:%02d:%02d.%03d\n",sys.wHour,sys.wMinute, sys.wSecond,sys.wMilliseconds);  
 		}
@@ -785,7 +785,7 @@ void push_file(int argc, char**argv)
 		left_size -= cp_size;
 
 		if(left_size == 0) {
-			printf("\t(%d/%d)", file_size, file_size);
+			printf("\t(%d/%d)", file_size/1024, file_size/1024);
 			GetLocalTime( &sys );   
 			printf( "\t%02d:%02d:%02d.%03d\n",sys.wHour,sys.wMinute, sys.wSecond,sys.wMilliseconds);  
 			break;
