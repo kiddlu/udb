@@ -26,7 +26,7 @@ GUID PROPSETID_VIDCAP_EXTENSION_UNIT = { 0xc987a729, 0x59d3, 0x4569, 0x84, 0x67,
 
 /****************************************/
 enum udb_chan_id {
-	UDB_CTRL           = 0x01,
+	UDB_AUTH           = 0x01,
 
 	/* run cmd */
 	UDB_RUN_CMD        = 0x02,
@@ -268,12 +268,6 @@ Exit_UvcSwitch:
 	return bSuccess;
 }
 
-void print_usage(const char *program)
-{
-    printf("usage: %s [command]\n", program);
-}
-
-
 void dumphex(void *data, uint32_t size)
 {
 	char ascii[17];
@@ -507,7 +501,7 @@ void exec_cmd(int argc, char**argv)
     for(int i = 0; i < argc; i ++) {
 		len = strlen(argv[i]);
 		memcpy(set_buf+offset, argv[i], len);
-		set_buf[offset+len+1] = ' ';
+		set_buf[offset+len] = ' ';
 		offset += (len+1);
 		
 		if(offset >= 60)
@@ -590,6 +584,8 @@ void print_usage(void)
 {
     printf("usage:\n");
     printf("  command: \n");
+	printf("    auth             : auth to ctrl dev\n");
+
     printf("    shell            : enter to interactive mode\n");
     printf("    shell [cmd]      : run shell cmd\n");
 
@@ -809,6 +805,48 @@ void push_file(int argc, char**argv)
 
 }
 
+void auth(int argc, char**argv)
+{
+    bool set = false;
+	bool get = true;
+
+    USHORT vid, pid;
+    ULONG ret;
+
+    memset(set_buf, 0, EU_MAX_PKG_SIZE);
+    memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
+
+    vid = UVCVID;
+    pid = UVCPID;
+
+	set_buf[0] = 'u';
+	set_buf[1] = 'd';
+	set_buf[2] = 'b';	
+	set_buf[3] = UDB_AUTH;
+
+	set_buf[4] = '0';
+	set_buf[5] = '3';
+	set_buf[6] = '0';
+	set_buf[7] = '3';
+	set_buf[8] = '0';
+	set_buf[9] = '6';
+	set_buf[10] = '0';
+	set_buf[11] = '3';
+	set_buf[12] = '0';
+	set_buf[13] = '3';
+	set_buf[14] = '0';
+	set_buf[15] = '7';
+	set_buf[16] = '0';
+	set_buf[17] = '7';
+	set_buf[18] = '0';
+	set_buf[19] = '1';
+
+	UvcXuCommand(vid, pid, set_buf, &ret, set);
+	UvcXuCommand(vid, pid, get_buf, &ret, get);
+	dumphex(set_buf, EU_MAX_PKG_SIZE);
+	dumphex(get_buf, ret);
+}
+
 int main(int argc, char**argv)
 {
 	if(argc<=1) {
@@ -836,7 +874,10 @@ int main(int argc, char**argv)
 		argv += 2;
 		raw_set(argc,argv);
 	} else if (!strcmp(argv[1],"rawget"))  {
-
+	} else if (!strcmp(argv[1],"auth"))  {
+		argc -= 2;
+		argv += 2;
+		auth(argc,argv);
 	} else {
 		print_usage();
 	}
