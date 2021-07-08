@@ -602,6 +602,12 @@ void pull_file(int argc, char**argv)
 	char *local_path = argv[0];
 	char *dev_path = argv[1];
 	
+	if(dev_path == NULL || local_path == NULL)
+	{
+		print_usage();
+		return;
+	}
+	
 	printf("from dev: %s\nto local: %s\n", dev_path, local_path);
 
 
@@ -640,7 +646,7 @@ void pull_file(int argc, char**argv)
 #endif
 	memcpy(&get_size, get_buf, sizeof(get_size));
 	file_size = get_size/1024;
-	printf("File Size: %dKiB, 0x%x\n", get_size, get_size);
+	printf("File Size: %dKiB, 0x%x\n", get_size/1024, get_size);
 
 	int i = 0,j = 0;
 	SYSTEMTIME sys;
@@ -697,7 +703,13 @@ void push_file(int argc, char**argv)
 {
 	char *local_path = argv[0];
 	char *dev_path = argv[1];
-	
+
+	if(dev_path == NULL || local_path == NULL)
+	{
+		print_usage();
+		return;
+	}
+
 	printf("from local: %s\nto dev: %s\n", local_path, dev_path);
 
 
