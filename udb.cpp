@@ -12,13 +12,14 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
+#include <setupapi.h>
 
 #pragma   comment(lib,"Strmiids.lib")
+#pragma   comment(lib,"setupapi.lib")
 
 //#define DEBUG
-
-#define UVCVID (0x0603)
-#define UVCPID (0x8612)
 
 GUID PROPSETID_VIDCAP_EXTENSION_UNIT = { 0xc987a729, 0x59d3, 0x4569, 0x84, 0x67, 0xff, 0x08, 0x49, 0xfc, 0x19, 0xe8 };
 
@@ -52,6 +53,111 @@ enum udb_chan_id {
 
 
 /*=============================================================================*/
+
+void dumphex(void *data, uint32_t size)
+{
+	char ascii[17];
+	unsigned int i, j;
+	ascii[16] = '\0';
+	for (i = 0; i < size; ++i) {
+		printf("%02X ", ((unsigned char*)data)[i]);
+		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+			ascii[i % 16] = ((unsigned char*)data)[i];
+		} else {
+			ascii[i % 16] = '.';
+		}
+		if ((i+1) % 8 == 0 || i+1 == size) {
+			printf(" ");
+			if ((i+1) % 16 == 0) {
+				printf("|  %s \n", ascii);
+			} else if (i+1 == size) {
+				ascii[(i+1) % 16] = '\0';
+				if ((i+1) % 16 <= 8) {
+					printf(" ");
+				}
+				for (j = (i+1) % 16; j < 16; ++j) {
+					printf("   ");
+				}
+				printf("|  %s \n", ascii);
+			}
+		}
+	}
+}
+
+static void ListupUVCDev(USHORT *vid, USHORT *pid)
+{
+	GUID class_guid[1];
+	unsigned long required_size;
+	bool ret;
+	HDEVINFO devinfo_set = NULL;
+	SP_DEVINFO_DATA devinfo_data;
+	unsigned int member_index = 0;
+	int find = 0;
+
+	devinfo_data.cbSize = sizeof(SP_DEVINFO_DATA);
+
+	// Get ClassGuid from ClassName for PORTS class
+	ret = SetupDiClassGuidsFromName(L"Camera", (LPGUID)&class_guid, 1,
+		                          &required_size);
+	if (ret != true) {
+		printf("SetupDiClassGuidsFromName Error\n");
+		goto cleanup;
+	}
+
+	// Get class devices
+	devinfo_set = SetupDiGetClassDevs(&class_guid[0], NULL, NULL, DIGCF_PRESENT | DIGCF_PROFILE);
+
+	if (devinfo_set) {
+		// Enumerate devices
+		member_index = 0;
+		while (SetupDiEnumDeviceInfo(devinfo_set, member_index++, &devinfo_data)) {
+			char friendly_name[MAX_PATH];
+			char hardware_id[MAX_PATH];
+			char message[MAX_PATH];
+			unsigned long req_size = 0;
+			unsigned long prop_type;
+			unsigned long type = REG_SZ;
+			int port_nb;
+			HKEY hKey = NULL;
+
+			// Get friendly_name
+			ret = SetupDiGetDeviceRegistryProperty(devinfo_set,
+			                                        &devinfo_data,
+			                                        SPDRP_FRIENDLYNAME,
+			                                        &prop_type,
+			                                        (LPBYTE)friendly_name,
+			                                        sizeof(friendly_name),
+			                                        &req_size);
+
+            ret = SetupDiGetDeviceRegistryProperty(devinfo_set,
+													&devinfo_data,
+													SPDRP_HARDWAREID,
+													&prop_type,
+													(LPBYTE)hardware_id,
+													sizeof(hardware_id),
+													&req_size);
+
+			wprintf(L"%s \t\t %s\n", (wchar_t *)friendly_name, (wchar_t *)hardware_id);
+			//dumphex(hardware_id, MAX_PATH);
+			*vid = (hardware_id[16] - '0') * 4096 + (hardware_id[18] - '0') * 256 + (hardware_id[20] - '0') * 16 + (hardware_id[22] - '0');
+			*pid = (hardware_id[34] - '0') * 4096 + (hardware_id[36] - '0') * 256 + (hardware_id[38] - '0') * 16 + (hardware_id[40] - '0');
+			//printf("vid 0x%04x pid 0x%04x\n", *vid, *pid);
+			if(*vid == 0x0603 && *pid == 0x8612) {
+				find = 1;
+				break;
+			}
+		}
+		if(find == 0) {
+			printf("Can't find UVC Dev\n");
+			exit(-1);
+		}
+	}
+cleanup:
+// Destroy device info list
+	SetupDiDestroyDeviceInfoList(devinfo_set);
+}
+
+
 
 HRESULT FindExtensionNode(IKsTopologyInfo* pIksTopologyInfo, GUID extensionGuid, DWORD* pNodeId)
 {
@@ -268,36 +374,6 @@ Exit_UvcSwitch:
 	return bSuccess;
 }
 
-void dumphex(void *data, uint32_t size)
-{
-	char ascii[17];
-	unsigned int i, j;
-	ascii[16] = '\0';
-	for (i = 0; i < size; ++i) {
-		printf("%02X ", ((unsigned char*)data)[i]);
-		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
-			ascii[i % 16] = ((unsigned char*)data)[i];
-		} else {
-			ascii[i % 16] = '.';
-		}
-		if ((i+1) % 8 == 0 || i+1 == size) {
-			printf(" ");
-			if ((i+1) % 16 == 0) {
-				printf("|  %s \n", ascii);
-			} else if (i+1 == size) {
-				ascii[(i+1) % 16] = '\0';
-				if ((i+1) % 16 <= 8) {
-					printf(" ");
-				}
-				for (j = (i+1) % 16; j < 16; ++j) {
-					printf("   ");
-				}
-				printf("|  %s \n", ascii);
-			}
-		}
-	}
-}
-
 
 unsigned char set_buf[EU_MAX_PKG_SIZE];
 unsigned char get_buf[EU_MAX_PKG_SIZE + 1];
@@ -316,8 +392,7 @@ void interactive_shell(void)
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
-    vid = UVCVID;
-    pid = UVCPID;
+	ListupUVCDev(&vid, &pid);
 
 	set_buf[0] = 'u';
 	set_buf[1] = 'd';
@@ -487,8 +562,7 @@ void exec_cmd(int argc, char**argv)
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
-    vid = UVCVID;
-    pid = UVCPID;
+	ListupUVCDev(&vid, &pid);
 
 	unsigned char loop = 0;
 
@@ -566,8 +640,7 @@ void raw_set(int argc, char**argv)
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
-    vid = UVCVID;
-    pid = UVCPID;
+	ListupUVCDev(&vid, &pid);
 
     for(int i = 0; i < argc; i ++) {
 		//printf("argc:%d\t %s,%d\n", i,argv[i], strlen(argv[i]));
@@ -630,8 +703,7 @@ void pull_file(int argc, char**argv)
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
-    vid = UVCVID;
-    pid = UVCPID;
+	ListupUVCDev(&vid, &pid);
 
 	set_buf[0] = 'u';
 	set_buf[1] = 'd';
@@ -736,8 +808,7 @@ void push_file(int argc, char**argv)
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
-    vid = UVCVID;
-    pid = UVCPID;
+	ListupUVCDev(&vid, &pid);
 
 	set_buf[0] = 'u';
 	set_buf[1] = 'd';
@@ -828,8 +899,7 @@ void auth(int argc, char**argv)
     memset(set_buf, 0, EU_MAX_PKG_SIZE);
     memset(get_buf, 0, EU_MAX_PKG_SIZE + 1);
 
-    vid = UVCVID;
-    pid = UVCPID;
+	ListupUVCDev(&vid, &pid);
 
 	set_buf[0] = 'u';
 	set_buf[1] = 'd';
