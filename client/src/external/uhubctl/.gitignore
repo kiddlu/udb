@@ -1,0 +1,12 @@
+# Executables
+uhubctl
+
+# Object files
+*.o
+
+# Mac symbols
+*.dSYM
+
+# Patches
+*.patch
+*.diff
