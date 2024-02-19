@@ -158,20 +158,20 @@ main_handle:
     {
         argc -= 1;
         argv += 1;
-        dfu_main(argc, argv);
+        //dfu_main(argc, argv);
     }
     else if (!strcmp(argv[1], "hub"))
     {
         argc -= 1;
         argv += 1;
-        uhubctl_main(argc, argv);
+        //uhubctl_main(argc, argv);
     }
     else if (!strcmp(argv[1], "lsusb"))
     {
         // print_lsusb_list();
         argc -= 1;
         argv += 1;
-        lsusb_main(argc, argv);
+        //lsusb_main(argc, argv);
 
         if ((argc > 1) && (strncmp(argv[1], "-t", 2) == 0))
         {
@@ -182,13 +182,13 @@ main_handle:
     {
         argc -= 1;
         argv += 1;
-        adb_main_func(argc, argv);
+        //adb_main_func(argc, argv);
     }
     else if (!strcmp(argv[1], "upnp"))
     {
         argc -= 1;
         argv += 1;
-        list_upnpc_main(argc, argv);
+        //list_upnpc_main(argc, argv);
     }
 #endif  // ENABLE_PLATFORM_LINUX
     else if (!strcmp(argv[1], "auth"))
