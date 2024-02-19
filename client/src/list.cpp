@@ -9,10 +9,10 @@
             0xe8                                                              \
     }
 
-#define USB_SUPPORT_LIST                                                   \
-    {0x0603,          0x8612, "NovatekCam", USB_CLASS_UVC,                   \
-     UDB_BACKEND_STD, 64,     0x01,       0x05,                            \
-     USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},       \
+#define USB_SUPPORT_LIST                                   \
+    {0x0603,          0x8612, "NovatekCam", USB_CLASS_UVC, \
+     UDB_BACKEND_STD, 64,     0x01,         0x05,          \
+     USB_XFER_CTRL,   0x00,   0x00,         NOVATEK_NT9856X_UVC_GUID},
 
 typedef struct
 {

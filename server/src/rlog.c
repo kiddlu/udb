@@ -4,7 +4,7 @@
 
 #include "rlog.h"
 
-//ensure
+// ensure
 #ifdef printf
 #undef printf
 #endif
@@ -215,7 +215,5 @@ void rlog_dumphex(void)
     return;
 }
 #else
-void rlog_dumphex(void)
-{
-}
+void rlog_dumphex(void) {}
 #endif
