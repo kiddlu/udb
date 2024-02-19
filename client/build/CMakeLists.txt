@@ -61,7 +61,6 @@ ${PROJECT_SOURCE_DIR}/../src/external/libusb//libusb/os/linux_netlink.c
 
 add_library(libusb ${LIBUSB_SOURCES})
 target_include_directories(libusb PUBLIC ${LIBUSB_HEADER})
-target_link_libraries(libusb Threads::Threads)
 ###########################
 # end libusb
 ###########################
@@ -97,7 +96,31 @@ target_include_directories(libuvc PUBLIC ${LIBUVC_HEADER})
 # end libuvc
 ###########################
 
-target_link_libraries(udb libuvc libusb)
+###########################
+# start lsusb
+###########################
+set(LSUSB_SOURCES
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/lsusb.c
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/lsusb-t.c
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/desc-defs.c
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/desc-dump.c
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/names.c
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/sysfs.c
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/usbmisc.c
+)
+
+set(LSUSB_HEADER
+${PROJECT_SOURCE_DIR}/../src/external/usbutils/
+${PROJECT_SOURCE_DIR}/../src/external/libusb/libusb/
+)
+
+add_library(lsusb ${LSUSB_SOURCES})
+target_include_directories(lsusb PUBLIC ${LSUSB_HEADER})
+###########################
+# end lsusb
+###########################
+
+target_link_libraries(udb libuvc libusb lsusb)
 #target_link_libraries(udb)
 
 #static link

@@ -171,7 +171,7 @@ main_handle:
         // print_lsusb_list();
         argc -= 1;
         argv += 1;
-        //lsusb_main(argc, argv);
+        lsusb_main(argc, argv);
 
         if ((argc > 1) && (strncmp(argv[1], "-t", 2) == 0))
         {
