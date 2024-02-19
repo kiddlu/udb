@@ -3,6 +3,7 @@ project (udb C CXX)
 
 add_definitions (
     -O2
+    -DBUILDING_UDB
 #	-Wno-all -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-implicit-function-declaration
 )
 
@@ -157,7 +158,32 @@ target_include_directories(adb PUBLIC ${ADB_HEADER})
 # end adb
 ###########################
 
-target_link_libraries(udb libuvc libusb lsusb adb)
+###########################
+# start dfu
+###########################
+set(DFU_SOURCES
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/main.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/dfu_load.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/dfu_util.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/dfuse.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/dfuse_mem.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/dfu.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/dfu_file.c
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/quirks.c
+)
+
+set(DFU_HEADER
+${PROJECT_SOURCE_DIR}/../src/external/dfu-util/src/
+${PROJECT_SOURCE_DIR}/../src/external/libusb/libusb/
+)
+
+add_library(dfu ${DFU_SOURCES})
+target_include_directories(dfu PUBLIC ${DFU_HEADER})
+###########################
+# dfu lsusb
+###########################
+
+target_link_libraries(udb libuvc libusb lsusb adb dfu)
 #target_link_libraries(udb)
 
 #static link

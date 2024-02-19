@@ -158,7 +158,7 @@ main_handle:
     {
         argc -= 1;
         argv += 1;
-        //dfu_main(argc, argv);
+        dfu_main(argc, argv);
     }
     else if (!strcmp(argv[1], "hub"))
     {
@@ -168,7 +168,6 @@ main_handle:
     }
     else if (!strcmp(argv[1], "lsusb"))
     {
-        // print_lsusb_list();
         argc -= 1;
         argv += 1;
         lsusb_main(argc, argv);

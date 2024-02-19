@@ -237,7 +237,11 @@ static struct option opts[] = {
 	{ 0, 0, 0, 0 }
 };
 
+#ifdef BUILDING_UDB
 int dfu_main(int argc, char **argv)
+#else
+int main(int argc, char **argv)
+#endif
 {
 	int expected_size = 0;
 	unsigned int transfer_size = 0;

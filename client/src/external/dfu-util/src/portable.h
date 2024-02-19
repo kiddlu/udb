@@ -1,14 +1,18 @@
 
 #ifndef PORTABLE_H
 #define PORTABLE_H
-#include "config.h"
+//#include "config.h"
+
+#define HAVE_UNISTD_H
+#define HAVE_NANOSLEEP
+#define HAVE_ERR
 
 #ifndef HAVE_CONFIG_H
 # define PACKAGE "dfu-util"
 # define PACKAGE_VERSION "0.11-msvc"
 # define PACKAGE_STRING "dfu-util 0.11-msvc"
 # define PACKAGE_BUGREPORT "http://sourceforge.net/p/dfu-util/tickets/"
-# include <io.h>
+//# include <io.h>
 /* FIXME if off_t is a typedef it is not a define */
 # ifndef off_t
 #  define off_t long int

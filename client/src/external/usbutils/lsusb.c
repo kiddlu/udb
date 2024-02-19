@@ -3701,10 +3701,10 @@ error:
 
 
 /* ---------------------------------------------------------------------- */
-#if 0
-int main(int argc, char *argv[])
-#else
+#ifdef BUILDING_UDB
 int lsusb_main(int argc, char *argv[])
+#else
+int main(int argc, char *argv[])
 #endif
 {
 	static const struct option long_options[] = {
