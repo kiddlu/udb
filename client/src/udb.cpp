@@ -164,7 +164,7 @@ main_handle:
     {
         argc -= 1;
         argv += 1;
-        //uhubctl_main(argc, argv);
+        uhubctl_main(argc, argv);
     }
     else if (!strcmp(argv[1], "lsusb"))
     {

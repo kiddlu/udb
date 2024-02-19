@@ -213,7 +213,24 @@ target_include_directories(upnpc PUBLIC ${UPNPC_HEADER})
 # end upnpc
 ###########################
 
-target_link_libraries(udb libuvc libusb lsusb adb dfu upnpc)
+###########################
+# start uhubctl
+###########################
+set(UHUBCTL_SOURCES
+${PROJECT_SOURCE_DIR}/../src/external/uhubctl/uhubctl.c
+)
+
+set(UHUBCTL_HEADER
+${PROJECT_SOURCE_DIR}/../src/external/uhubctl/
+)
+
+add_library(uhubctl ${UHUBCTL_SOURCES})
+target_include_directories(uhubctl PUBLIC ${UHUBCTL_HEADER})
+###########################
+# end uhubctl
+###########################
+
+target_link_libraries(udb libuvc libusb lsusb adb dfu upnpc uhubctl)
 #target_link_libraries(udb)
 
 #static link

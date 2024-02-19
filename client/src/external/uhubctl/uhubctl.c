@@ -1027,10 +1027,10 @@ static int usb_find_hubs()
 }
 
 
-#if 0
-int main(int argc, char *argv[])
-#else
+#ifdef BUILDING_UDB
 int uhubctl_main(int argc, char *argv[])
+#else
+int main(int argc, char *argv[])
 #endif
 {
     int rc;
