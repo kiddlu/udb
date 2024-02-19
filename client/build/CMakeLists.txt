@@ -120,7 +120,44 @@ target_include_directories(lsusb PUBLIC ${LSUSB_HEADER})
 # end lsusb
 ###########################
 
-target_link_libraries(udb libuvc libusb lsusb)
+###########################
+# start adb
+###########################
+set(ADB_SOURCES
+${PROJECT_SOURCE_DIR}/../src/external/adb/adb.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/console.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/transport.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/transport_local.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/transport_usb.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/commandline.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/fdevent.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/adb_client.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/sockets.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/services.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/file_sync_client.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/usb_vendors.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/usb_linux.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/get_my_path_linux.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/load_file.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/socket_inaddr_any_server.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/socket_local_client.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/socket_local_server.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/socket_loopback_client.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/socket_loopback_server.c
+${PROJECT_SOURCE_DIR}/../src/external/adb/socket_network_client.c
+)
+
+set(ADB_HEADER
+${PROJECT_SOURCE_DIR}/../src/external/adb/
+)
+
+add_library(adb ${ADB_SOURCES})
+target_include_directories(adb PUBLIC ${ADB_HEADER})
+###########################
+# end adb
+###########################
+
+target_link_libraries(udb libuvc libusb lsusb adb)
 #target_link_libraries(udb)
 
 #static link

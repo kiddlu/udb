@@ -182,7 +182,7 @@ main_handle:
     {
         argc -= 1;
         argv += 1;
-        //adb_main_func(argc, argv);
+        adb_main_func(argc, argv);
     }
     else if (!strcmp(argv[1], "upnp"))
     {
