@@ -180,10 +180,40 @@ ${PROJECT_SOURCE_DIR}/../src/external/libusb/libusb/
 add_library(dfu ${DFU_SOURCES})
 target_include_directories(dfu PUBLIC ${DFU_HEADER})
 ###########################
-# dfu lsusb
+# end dfu
 ###########################
 
-target_link_libraries(udb libuvc libusb lsusb adb dfu)
+###########################
+# start upnpc
+###########################
+set(UPNPC_SOURCES
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/miniwget.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/minixml.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/igd_desc_parse.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/minisoap.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/miniupnpc.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/upnpreplyparse.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/upnpcommands.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/upnperrors.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/connecthostport.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/portlistingparse.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/receivedata.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/upnpdev.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/minissdpc.c
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/listdevices.c
+)
+
+set(UPNPC_HEADER
+${PROJECT_SOURCE_DIR}/../src/external/miniupnp/miniupnpc/
+)
+
+add_library(upnpc ${UPNPC_SOURCES})
+target_include_directories(upnpc PUBLIC ${UPNPC_HEADER})
+###########################
+# end upnpc
+###########################
+
+target_link_libraries(udb libuvc libusb lsusb adb dfu upnpc)
 #target_link_libraries(udb)
 
 #static link

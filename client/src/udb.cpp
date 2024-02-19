@@ -187,7 +187,7 @@ main_handle:
     {
         argc -= 1;
         argv += 1;
-        //list_upnpc_main(argc, argv);
+        list_upnpc_main(argc, argv);
     }
 #endif  // ENABLE_PLATFORM_LINUX
     else if (!strcmp(argv[1], "auth"))

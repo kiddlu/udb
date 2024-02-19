@@ -247,10 +247,10 @@ static int berxel_ssdp_print(char *oristr)
 }
 
 
-#if 0
-int main(int argc, char * * argv)
-#else
+#ifdef BUILDING_UDB
 int list_upnpc_main(int argc, char * * argv)
+#else
+int main(int argc, char * * argv)
 #endif
 {
 	const char * searched_device = NULL;

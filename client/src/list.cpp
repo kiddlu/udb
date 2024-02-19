@@ -10,57 +10,9 @@
     }
 
 #define USB_SUPPORT_LIST                                                   \
-    {0x0603,          0x8612, "iHawk100", USB_CLASS_UVC,                   \
+    {0x0603,          0x8612, "NovatekCam", USB_CLASS_UVC,                   \
      UDB_BACKEND_STD, 64,     0x01,       0x05,                            \
      USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},       \
-        {0x0603,          0x0001, "iHawk100", USB_CLASS_UVC,               \
-         UDB_BACKEND_STD, 64,     0x01,       0x05,                        \
-         USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},   \
-        {0x0603,          0x1001, "iHawk100V", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x0002, "iHawk100E", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x0004, "iHawk070", USB_CLASS_UVC,               \
-         UDB_BACKEND_STD, 64,     0x01,       0x05,                        \
-         USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},   \
-        {0x0603,          0x0005, "iHawk150W", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x1006, "iHawk020", USB_CLASS_UVC,               \
-         UDB_BACKEND_STD, 64,     0x01,       0x05,                        \
-         USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},   \
-        {0x0603,          0x0007, "iHawk100S", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x0008, "iHawk100K", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x0009, "iHawk100R", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x000A, "iHawk100Q", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x000B, "iHawk100Q1", USB_CLASS_UVC,             \
-         UDB_BACKEND_STD, 64,     0x01,         0x05,                      \
-         USB_XFER_CTRL,   0x00,   0x00,         NOVATEK_NT9856X_UVC_GUID}, \
-        {0x0603,          0x000C, "iHawk071", USB_CLASS_UVC,               \
-         UDB_BACKEND_STD, 64,     0x01,       0x05,                        \
-         USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},   \
-        {0x0603,          0x000D, "iHawk137", USB_CLASS_UVC,               \
-         UDB_BACKEND_STD, 64,     0x01,       0x05,                        \
-         USB_XFER_CTRL,   0x00,   0x00,       NOVATEK_NT9856X_UVC_GUID},   \
-        {0x0603,          0x000E, "iHawk150E", USB_CLASS_UVC,              \
-         UDB_BACKEND_STD, 64,     0x01,        0x05,                       \
-         USB_XFER_CTRL,   0x00,   0x00,        NOVATEK_NT9856X_UVC_GUID},  \
-        {0x0603,          0x000F, "iHawk100R1", USB_CLASS_UVC,             \
-         UDB_BACKEND_STD, 64,     0x01,         0x05,                      \
-         USB_XFER_CTRL,   0x00,   0x00,         NOVATEK_NT9856X_UVC_GUID}, \
-        {0x0603,          0x000F, "iHawk100R0", USB_CLASS_UVC,             \
-         UDB_BACKEND_STD, 64,     0x01,         0x05,                      \
-         USB_XFER_CTRL,   0x00,   0x00,         NOVATEK_NT9856X_UVC_GUID},
 
 typedef struct
 {
